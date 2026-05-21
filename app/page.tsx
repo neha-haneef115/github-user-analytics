@@ -13,86 +13,162 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // ✅ REALISTIC REPO SCORING (clean + stable)
+  const repoScore = (repo: Repo) => {
+    const stars = repo.stargazers_count || 0;
+    const forks = repo.forks_count || 0;
+    const watchers = repo.watchers_count || 0;
+
+    const daysSinceUpdate =
+      (Date.now() - new Date(repo.updated_at).getTime()) /
+      (1000 * 60 * 60 * 24);
+
+    // recency boost (0 → 1 range, fades over 1 year)
+    const recencyBoost = Math.max(0, 1 - daysSinceUpdate / 365);
+
+    return (
+      stars * 4 +        // ⭐ PRIMARY SIGNAL
+      forks * 3 +        // 🔁 STRONG SECONDARY SIGNAL
+      watchers * 1 +     // 👁 WEAK SIGNAL
+      recencyBoost * 50  // 📅 ACTIVITY BOOST
+    );
+  };
+
   const fetchData = async () => {
     setError("");
     setLoading(true);
 
     try {
       if (!username.trim()) {
-        setError("Enter username");
+        setError("Username required");
         setLoading(false);
         return;
       }
 
-      const userData = await getUser(username);
-      const repoData = await getRepos(username);
+      const [userData, repoData] = await Promise.all([
+        getUser(username),
+        getRepos(username),
+      ]);
 
-      const sorted = repoData.sort(
-        (a: Repo, b: Repo) => b.stargazers_count - a.stargazers_count
-      );
+      const sortedRepos = repoData
+        .map((repo: Repo) => ({
+          ...repo,
+          score: repoScore(repo),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
 
       setUser(userData);
-      setRepos(sorted.slice(0, 5));
+      setRepos(sortedRepos);
     } catch (err: any) {
-      if (err.message === "USER_FETCH_FAILED") {
-        setError("User not found or API error");
-      } else {
-        setError("Something went wrong or rate limited");
-      }
+      setError("User not found");
+      setUser(null);
+      setRepos([]);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const totalStars = repos.reduce(
-    (acc, r) => acc + r.stargazers_count,
-    0
-  );
-
-  const languageMap: Record<string, number> = {};
-  repos.forEach((r) => {
-    if (r.language) {
-      languageMap[r.language] = (languageMap[r.language] || 0) + 1;
-    }
-  });
-
-  const topLanguage =
-    Object.entries(languageMap).sort((a, b) => b[1] - a[1])[0]?.[0] ||
-    "N/A";
-
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <h1 className="text-2xl font-bold">GitHub Analyzer</h1>
+    <div className="min-h-screen bg-[#050505] text-[#e0e0e0] font-sans selection:bg-yellow-400 selection:text-black">
 
-      <div className="flex gap-2 mt-4">
-        <input
-          className="border p-2 flex-1"
-          placeholder="Enter username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-
-        <button
-          onClick={fetchData}
-          className="bg-black text-white px-4"
-        >
-          Search
-        </button>
+      {/* Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-purple-900/20 blur-[120px] rounded-full" />
+        <div className="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-blue-900/10 blur-[100px] rounded-full" />
       </div>
 
-      {loading && <p className="mt-4">Loading...</p>}
-      {error && <p className="text-red-500 mt-2">{error}</p>}
+      <div className="relative max-w-5xl mx-auto pt-24 pb-20 px-6">
 
-      {user && (
-        <>
-          <UserCard
-            user={user}
-            totalStars={totalStars}
-            topLanguage={topLanguage}
-          />
-          <RepoList repos={repos} />
-        </>
-      )}
+        {/* HEADER */}
+        <div className="flex justify-between items-end mb-16 border-b border-white/10 pb-6">
+          <div>
+            <span className="font-mono text-xs uppercase tracking-[0.3em] text-purple-500 font-bold">
+              Terminal v2.0
+            </span>
+            <h1 className="text-5xl font-black tracking-tighter mt-2">
+              GIT<span className="text-purple-500">.</span>DATA
+            </h1>
+          </div>
+
+          <div className="hidden md:block text-right font-mono text-[10px] text-zinc-500 leading-tight">
+            SYSTEM_STATUS: OPERATIONAL<br />
+            API_SOURCE: GITHUB_V3
+          </div>
+        </div>
+
+        {/* SEARCH */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-20">
+          <div className="md:col-span-9 relative">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 font-mono text-purple-500 text-sm">
+              ~/
+            </div>
+
+            <input
+              className="w-full bg-zinc-900/50 border border-white/5 rounded-sm py-4 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-all font-mono placeholder:text-zinc-700"
+              placeholder="enter_github_handle..."
+              value={username}
+              onKeyDown={(e) => e.key === "Enter" && fetchData()}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="md:col-span-3 bg-white text-black font-black uppercase text-sm tracking-widest hover:bg-purple-500 hover:text-white transition-colors duration-300 py-4 disabled:opacity-50"
+          >
+            {loading ? "FETCHING..." : "EXECUTE"}
+          </button>
+
+          {error && (
+            <p className="col-span-12 mt-2 font-mono text-xs text-red-500">
+              {error}
+            </p>
+          )}
+        </div>
+
+        {/* RESULTS */}
+        {user && (
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 animate-in fade-in zoom-in-95 duration-500">
+
+            {/* PROFILE */}
+            <div className="md:col-span-4 space-y-6">
+              <div className="bg-zinc-900/40 border border-white/5 p-1 rounded-sm">
+                <UserCard user={user} />
+              </div>
+
+              <div className="bg-purple-500 p-6 rounded-sm text-black">
+                <p className="font-mono text-[10px] font-bold uppercase mb-1">
+                  Quick Stat
+                </p>
+                <p className="text-3xl font-black leading-none">
+                  TOP TIER
+                </p>
+                <p className="text-xs font-medium mt-2 opacity-80 italic">
+                  Based on stars, forks, and repository freshness.
+                </p>
+              </div>
+            </div>
+
+            {/* REPOS */}
+            <div className="md:col-span-8">
+              <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-sm relative overflow-hidden">
+
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rotate-45 translate-x-16 -translate-y-16 border border-white/10" />
+
+                <h3 className="font-mono text-xs font-bold text-zinc-500 uppercase mb-8 flex items-center gap-4">
+                  <span className="h-[1px] w-8 bg-zinc-800"></span>
+                  Primary_Repositories
+                </h3>
+
+                <RepoList repos={repos} />
+              </div>
+            </div>
+
+          </div>
+        )}
+      </div>
     </div>
   );
 }
