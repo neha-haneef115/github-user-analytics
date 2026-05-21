@@ -3,13 +3,17 @@ import { Repo } from "@/types/github";
 export default function RepoList({ repos }: { repos: Repo[] }) {
   return (
     <div className="w-full">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-zinc-800 to-zinc-800" />
-        <h3 className="font-black text-[10px] uppercase tracking-[0.4em] text-zinc-500">
-          Top_Repositories_Stream
-        </h3>
-      </div>
+      <div className="flex items-center mb-4 gap-4">
+  
+  <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-zinc-800 to-zinc-800" />
 
+  <h3 className="font-black text-[10px] uppercase tracking-[0.4em] text-zinc-500 text-center whitespace-nowrap">
+    Top_Repositories_Stream
+  </h3>
+
+  <div className="h-[1px] flex-1 bg-gradient-to-r from-zinc-800 via-zinc-800 to-transparent" />
+
+</div>
       <div className="grid gap-3">
         {repos.map((repo, index) => (
           <div 

@@ -118,8 +118,8 @@ export default function Page() {
               <div className="relative overflow-hidden bg-purple-600 p-6 md:p-8 text-black font-black">
                 <div className="absolute top-0 right-0 p-2 font-mono text-[8px] opacity-30">AUDIT_V2</div>
                 <p className="font-mono text-[9px] uppercase mb-1 opacity-60 tracking-widest">System Rank</p>
-                <p className="text-4xl md:text-5xl italic tracking-tighter leading-none">{getTier(repos)}</p>
-                <p className="text-[9px] md:text-[10px] text-white/70 mt-4 italic font-normal border-t border-black/10 pt-4">
+                <p className="text-4xl md:text-5xl tracking-tighter leading-none">{getTier(repos)}</p>
+                <p className="text-[9px] md:text-[10px] text-white/70  italic font-normal border-t border-black/10 pt-4">
                   Derived from weighted repo engagement + activity recency metrics.
                 </p>
               </div>
