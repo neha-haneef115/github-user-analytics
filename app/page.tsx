@@ -181,15 +181,15 @@ export default function Page() {
               />
 
               <div className="bg-purple-600 text-black p-6 md:p-8 font-black">
-                <p className="font-mono text-[9px] uppercase opacity-60 tracking-widest">
+                <p className="font-mono text-[11px] italic  uppercase opacity-60 tracking-widest">
                   System Rank
                 </p>
 
-                <p className="text-3xl sm:text-4xl md:text-5xl tracking-tighter">
+                <p className="text-3xl  sm:text-4xl italic md:text-5xl tracking-normal">
                   {getTier(repos)}
                 </p>
 
-                <p className="text-[10px] italic font-light mt-2 opacity-80">
+                <p className="text-[12px] text-white italic font-light mt-2 opacity-80">
                   Weighted repo engagement + activity recency
                 </p>
               </div>
@@ -198,7 +198,7 @@ export default function Page() {
             <div className="md:col-span-8">
               <div className="bg-zinc-900/10 border border-white/5 p-4 sm:p-6 md:p-10">
 
-                <h3 className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-6">
+                <h3 className="font-mono text-[12px] uppercase tracking-widest text-zinc-500 mb-6">
                   Top_Yield_Repos
                 </h3>
 
